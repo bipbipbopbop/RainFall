@@ -1,0 +1,12 @@
+A binary named 'level0' is in the home folder.
+A few tests show us that the program segfaults without arguments, and prints "No !" when we add one or more arguments.
+A static analysis of the program shows us that their is a condition on wether the first argument is "423".
+the command "./level0 423" create a bash prompt: the command `whoami` confirms us that we are the level1 user.
+
+
+level0@RainFall:~$ ./level0 423
+$ whoami
+level1
+$ cd ../level1
+$ cat .pass
+1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a
