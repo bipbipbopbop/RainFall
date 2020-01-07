@@ -8,7 +8,7 @@ void p(char *buf)
     printf(buf);
 }
 
-void    v(void)
+void    n(void)
 {
     char    buf[520];
 
