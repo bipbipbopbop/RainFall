@@ -1,4 +1,4 @@
-The program level2 contains a function `v` with calls to `fgets` and `printf`.
+The program level3 contains a function `v` with calls to `fgets` and `printf`.
 We can quickly see that the results gotten from `fgets` gets stored in a string which is then used as the format string in printf.
 We also notice a call to `system` with the parameter `"/bin/sh"`, guarded by a `cmp` instruction.
 This instruction checks a global variable if it is equal to 64, when it is not, it exits the program.

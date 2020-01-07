@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int a = 0;
+int a;
 
 void    v(void)
 {
