@@ -10,7 +10,7 @@ void    v(void)
     fgets(buf, 512, stdin);
     printf(buf);
 
-    if (a == 40)
+    if (a == 0x40)
     {
         fwrite("Wait what?!\n", 12, 1, stdout);
         system("/bin/sh");
