@@ -1,0 +1,16 @@
+The program open and reads twice 66 bytes from the file "/home/user/end/.pass" and prints the last 66 bytes it read.
+
+There is a condition that compares the first 66 bytes with argv[1], we want a way to match them.
+argv[1] is used with atoi to insert a '\0' at the value it returns, we could use that to "cut" the buffer so that it matches argv[1].
+
+And it happens that `atoi("")` returns 0, which means our buffer will be {'\0', ...}, when compared with strcmp, it is equal to the empty string.
+
+We can then simply run the program with the empty string as argv[1] to call the `execl("/bin/sh", "sh", NULL)` function present under that condition.
+
+bonus3@RainFall:~$ ./bonus3 ''
+$ whoami
+end
+$ cd ../end
+$ cat .pass
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c
+
