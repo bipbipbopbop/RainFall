@@ -21,7 +21,6 @@ Then the function `greetuser` is called with the first buffer as its argument.
 This function checks the global variable and calls strcpy from literals into a local buffer, then the parameter is the concatenated to it, before it gets printed.
 
 We can find a way to exploit the environment variable by putting the shellcode in it and getting its approximate address with getenv:
-bonus2@RainFall:~$ nano /tmp/env.c
 bonus2@RainFall:~$ cat /tmp/env.c
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +43,7 @@ p
 Now we need to find eip in our buffer to override it and point inside our NOP sled.
 We can do this by overflowing our buffers, in this case by putting 40 characters in argv[1] and 22 in argv[2] the strcat in `greetuser` will cause an overflow which will let us overwrite the instruction pointer.
 
-The string "Hyvää päivää " prepended to our buffer when $LANG starts with "fi", its size is 18, that explains why we don't need to reach 32 to overflow our second buffer.
+The string "Hyvää päivää " gets prepended to our buffer when $LANG starts with "fi", its size is 18, that explains why we don't need to reach 32 to overflow our second buffer.
 
 (gdb) r aaaabbbbccccddddeeeeffffgggghhhhiiiijjjj 123456789012345678AAAA
 Starting program: /home/user/bonus2/bonus2 aaaabbbbccccddddeeeeffffgggghhhhiiiijjjj 123456789012345678AAAA
