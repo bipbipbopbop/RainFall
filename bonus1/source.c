@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
     int n = atoi(argv[1]);
     char buf[40]; /* equivalent to int buf[10] */
-        
+
     if (n <= 9)
     {
         memcpy(buf, argv[2], n * 4);
