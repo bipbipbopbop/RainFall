@@ -1,0 +1,29 @@
+The program has 2 variables defined in the main function, an integer and a buffer of size 40.
+
+It calls `atoi` on `argv[1]` and stores it into the integer variable, it then checks if that variables is less or equal to 10, if it isn't, it exits the program with error code 1.
+
+We can see a call to memcpy which we will be able to exploit later on, it fills `atoi(argv[1]) * 4` bytes of our buffer with the content of `argv[2]`.
+
+This is followed by a check that our integer (argv[1]) is equal to 0x574f4c46 which brings us to a call to execl which will run a shell  for us, we want to overflow the buffer with the call to memcpy to override the integer, however we need a way to bypass the case preventing us from having too big of an argv[1].
+
+We can abuse signedness to bypass the `<= 9` check by putting a negative value, which will then be multiplied by 4 into, possibly, a valid value for us to overwrite our integer.
+
+The buffer's size is 10*sizeof(int)=40, and the other integer's size is also 4, which means we want to write 40 characters followed by 0x574f4c46.
+
+It is trivial to see that we want INT_MIN + (44 / 4) as our first argument.
+This gives us -2147483637, or 0x8000000b which when multiplied by 4 like in the program gives 0x20000002C, and since we are dealing with 4 bytes integers, the leading 2 is discarded, which yields 0x2C=44.
+
+Given that information, it is trivial to build our exploit:
+- argv[1]: -2147483637
+- argv[2] bytes 0-40: Filler bytes
+- argv[2] bytes 40-44: The value that we want to fill our integer with
+
+The command looks like this:
+`./bonus1 `python -c "print -(2**31)+11"` `python -c "print 'a' * 40 + '\x57\x4f\x4c\x46'[::-1]"``
+
+bonus1@RainFall:~$ ./bonus1 `python -c "print -(2**31)+11"` `python -c "print 'a' * 40 + '\x57\x4f\x4c\x46'[::-1]"`
+$ whoami
+bonus2
+$ cd ../bonus2
+$ cat .pass
+579bd19263eb8655e4cf7b742d75edf8c38226925d78db8163506f5191825245
